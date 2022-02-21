@@ -1,0 +1,43 @@
+--track0:時間(s),0,5,0.5,0.01
+--track1:距離(px),0,300,50,1
+--track2:方向(deg),-360,360,0,1
+--track3:重み,0,6,3,0.01
+--dialog:スライドイン/chk,sIn=1;スライドアウト/chk,sOut=1;フェードする/chk,fade=1;アウト時にフェードを遅らせる/chk,outlate=0;
+
+slideTime = obj.track0
+slideDist = obj.track1
+power     = obj.track3
+c         = -slideDist
+deg       = math.rad(obj.track2)
+t = obj.time
+tt = obj.totaltime
+r=0
+if t < slideTime and sIn==1 then
+    t = t 
+    tp = t/slideTime
+    wait = math.pow(1-tp,power)
+    if fade==1 then
+        obj.alpha = 1-wait
+    end
+    r = slideDist * wait
+
+elseif tt-slideTime < t and sOut==1 then
+    t = t-tt+slideTime
+    tp = t/slideTime
+    mtp = 1-tp
+    wait = math.pow(mtp,power)
+    await = math.pow(tp,power)
+    if fade==1 then
+        if outlate==1 then  obj.alpha = 1-await
+        else obj.alpha = wait end
+    end
+    r = slideDist * (1-wait)
+    if obj.check0 == 0 then
+        flag = -1
+    end
+else
+    r=0
+end
+
+obj.ox = obj.ox + math.cos(deg)*r
+obj.oy = obj.oy + math.sin(deg)*r
