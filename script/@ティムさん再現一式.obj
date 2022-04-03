@@ -1,0 +1,232 @@
+@タイマー1
+--track0:サイズ,0,500,120,1
+--track1:幅,0,100,15,1
+--track2:フォント,0,500,50,1
+--track3:開始地点,0,360,0
+--check0:時計回り,0
+--dialog:色/col,local color=0xff0000;光強さ,local light=50;光拡散,local lightb=30;光しきい値,local lightv=60;光ぼかし,local lightbr=10;フォント選択,local font="MS UI Gothic"
+pcall(require, "rikky_module")
+if rikky_module then
+rikky_module.fontCS(6)
+end
+local r=obj.track0*0.5
+local l=obj.track0
+local rt=obj.totaltime-obj.time
+local spi=obj.track3*math.pi/180
+local wh=math.ceil(l+obj.track1)
+wh=wh+wh%2
+obj.setoption("drawtarget","tempbuffer",wh,wh)
+obj.load("figure","円",0xffffff,obj.track1)
+local L=360
+local Ln=L*rt/obj.totaltime
+local p=1
+if obj.check0 then
+p=-1
+end
+for i=1,Ln do
+local t=i/L*math.pi*2
+obj.draw(p*r*math.sin(t+spi),-r*math.cos(t+spi))
+end
+obj.copybuffer("obj","tmp")
+--obj.effect("発光","color",color,"強さ",light,"拡散",lightb,"しきい値",lightv)
+obj.effect("グロー","color",color,"no_color",0,"強さ",light,"拡散",lightb,"しきい値",lightv,"ぼかし",lightbr)
+--obj.setoption("drawtarget","framebuffer")
+local w,h=obj.getpixel()
+obj.setoption("drawtarget","tempbuffer",w,h)
+obj.draw()
+obj.setfont(font,obj.track2)
+obj.load(string.format("%0.1f",rt))
+obj.draw()
+obj.copybuffer("obj","tmp")
+if wh==0 then
+obj.alpha=0
+end
+
+@タイマー2
+--track0:サイズ,0,500,120,1
+--track1:中心円,0,500,80,1
+--track2:フォント,0,500,50,1
+--track3:開始地点,0,360,0
+--check0:時計回り,0
+--dialog:背景色/col,local col1=0x808080;枠色/col,local col2=0xffffff;残量色/col,local col3=0x00ff00;移動色前/col,local col4=0x0000ff;移動色後,local col5=0xff0000;フォント選択,local font="MS UI Gothic"
+pcall(require, "rikky_module")
+if rikky_module then
+rikky_module.fontCS(6)
+end
+local R=math.ceil(obj.track0)
+R=R+R%2
+local r=R*0.5
+local CR=obj.track1
+local cr=CR*0.5
+local rt=obj.totaltime-obj.time
+local rd=300/obj.totaltime
+local d=(360-rd)*(1-rt/obj.totaltime)+rd
+obj.setoption("drawtarget","tempbuffer",R,R)
+obj.setoption("blend","alpha_add")
+local r0,g0,b0=RGB(col4)
+local r1,g1,b1=RGB(col5)
+local color=RGB(r0,g0,b0,r1,g1,b1)
+obj.load("figure","円",color,R-2,r-cr)
+
+obj.effect("斜めクリッピング","角度",-90,"ぼかし",0)
+if 0<rd and rd<180 then
+obj.effect("斜めクリッピング","角度",90-rd,"ぼかし",0)
+end
+obj.draw()
+if 180<=rd then
+obj.load("figure","円",color,R-2,r-cr)
+obj.effect("斜めクリッピング","角度",90,"ぼかし",0)
+if rd<360 then
+obj.effect("斜めクリッピング","角度",90+360-rd,"ぼかし",0)
+end
+obj.draw()
+end
+obj.copybuffer("cache:1","tmp")
+obj.setoption("drawtarget","tempbuffer",R,R)
+obj.setoption("blend","alpha_add")
+obj.load("figure","円",col3,R-2,r-cr)
+if d<180 then
+obj.effect("斜めクリッピング","角度",-90,"ぼかし",0)
+if 0<d then
+obj.effect("斜めクリッピング","角度",-90-d,"ぼかし",0)
+end
+obj.draw()
+end
+if d<360 then
+obj.load("figure","円",col3,R-2,r-cr)
+obj.effect("斜めクリッピング","角度",90,"ぼかし",0)
+if 180<=d then
+obj.effect("斜めクリッピング","角度",270-d,"ぼかし",0)
+end
+obj.draw()
+end
+obj.copybuffer("obj","cache:1")
+obj.draw(0,0,0,1,1,0,0,-d+rd)
+obj.copybuffer("cache:1","tmp")
+obj.setoption("drawtarget","tempbuffer",R,R)
+obj.setoption("blend",0)
+obj.load("figure","円",col1,R,r-cr)
+obj.draw()
+obj.copybuffer("obj","cache:1")
+local p=1
+if obj.check0 then
+p=-1
+obj.effect("反転","左右反転",1)
+end
+obj.draw(0,0,0,1,1,0,0,p*obj.track3)
+
+obj.load("figure","円",col2,R+1,2)
+obj.draw()
+obj.load("figure","円",col2,CR,2)
+obj.draw()
+obj.setfont(font,obj.track2)
+obj.load(string.format("%0.1f",rt))
+obj.draw()
+obj.copybuffer("obj","tmp")
+if R==0 then
+obj.alpha=0
+end
+
+
+@枠
+--track0:枠幅,0,100,2,1
+--track1:背景透過,0,100,50
+--track2:背景幅,0,2000,300,1
+--track3:背景高,0,2000,200,1
+--dialog:背景色/col,local col1=0x808080;枠色/col,local col2=0xffff00;中心0~4,local cen=0;
+local w=obj.track0
+local x1,x2,y1,y2
+obj.track2=math.ceil(obj.track2)
+obj.track2=obj.track2+obj.track2%2
+obj.track3=math.ceil(obj.track3)
+obj.track3=obj.track3+obj.track3%2
+obj.setoption("drawtarget","tempbuffer",obj.track2,obj.track3)
+x2=obj.track2*0.5
+x1=-x2
+y2=obj.track3*0.5
+y1=-y2
+obj.load("figure","四角形",col1)
+obj.drawpoly(
+x1,y1,0,
+x2,y1,0,
+x2,y2,0,
+x1,y2,0,
+0,0,100,0,100,100,0,100,
+1-obj.track1*0.01)
+obj.load("figure","四角形",col2)
+obj.drawpoly(
+x1,y1,0,
+x2,y1,0,
+x2,y1+w,0,
+x1,y1+w,0)
+obj.drawpoly(
+x2-w,y1,0,
+x2,y1,0,
+x2,y2,0,
+x2-w,y2,0)
+obj.drawpoly(
+x2,y2,0,
+x1,y2,0,
+x1,y2-w,0,
+x2,y2-w,0)
+obj.drawpoly(
+x1,y1,0,
+x1+w,y1,0,
+x1+w,y2,0,
+x1,y2,0)
+obj.copybuffer("obj","tmp")
+if cen==nil or cen==0 then
+elseif cen==1 then
+obj.cx=x1
+obj.cy=y1
+elseif cen==2 then
+obj.cx=x2
+obj.cy=y1
+elseif cen==3 then
+obj.cx=x2
+obj.cy=y2
+elseif cen==4 then
+obj.cx=x1
+obj.cy=y2
+end
+if obj.track2*obj.track3==0 then
+obj.alpha=0
+end
+
+@矢印
+--track0:幅1,0,2000,100
+--track1:幅2,0,2000,30
+--track2:高1,0,2000,120
+--track3:高2,0,2000,100
+--check0:尻尾に中心,0
+--dialog:本体色/col,local col1=0xff0000;縁色/col,local col2=0xffffff;縁サイズ,local size=4
+local w1=obj.track0*0.5
+local w2=obj.track1*0.5
+if w1<w2 then w2=w1 end
+local h1=(obj.track2+obj.track3)*0.5
+local h2=-h1+obj.track2
+local w3=math.ceil(obj.track0)
+w3=w3+w3%2
+local h3=math.ceil(obj.track2+obj.track3)
+h3=h3+h3%2
+obj.setoption("drawtarget","tempbuffer",w3,h3)
+obj.setoption("blend","alpha_add")
+obj.load("figure","四角形",col1)
+obj.drawpoly(
+0,-h1,0,
+0,-h1,0,
+w1,h2,0,
+-w1,h2,0)
+obj.drawpoly(
+-w2,h2,0,
+w2,h2,0,
+w2,h1,0,
+-w2,h1,0)
+obj.copybuffer("obj","tmp")
+obj.effect("縁取り","color",col2,"サイズ",size,"ぼかし",0)
+if obj.check0 then
+obj.cy=h1
+end
+if w3*h3==0 then
+obj.alpha=0
+end
